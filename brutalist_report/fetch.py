@@ -69,7 +69,7 @@ class BrutalistFetch():
         Fetches a list of sources for a given topic.
 
         Args:
-            topic (str, optional): The topic to fetch sources for. Defaults to ALL.
+            topic (str, optional): The topic to fetch sources for. Defaults to all topics available.
 
         Returns:
             dict: A dictionary where keys are source names and values are their corresponding URLs.
