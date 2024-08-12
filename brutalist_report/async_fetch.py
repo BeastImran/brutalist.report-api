@@ -1,11 +1,11 @@
 """
-A module to fetch data from Brutalist.report website, including topics, sources, posts, and last update time.
+A module to fetch data from Brutalist.report website asynchronously, including topics, sources, posts, and last update time.
 
-- `BrutalistFetch(connection_reuse: bool = False)` - Initializes a BrutalistFetch object with optional connection reuse.
-- `fetch_feed_topics() -> dict` - Fetches a list of topics available from the Brutalist.report homepage.
-- `fetch_sources(topic: str = '') -> dict` - Fetches a list of available sources with optional given topic.
-- `fetch_source_posts(source_link: str, date: datetime.date, limit: int = 50) -> dict` - Fetches posts from a source by date, optionally filtering by limit.
-- `fetch_last_update_time() -> datetime.datetime` - Fetches the last update time from the Brutalist.report homepage.
+- `async BrutalistFetch(connection_reuse: bool = False)` - Initializes a BrutalistFetch object with optional connection reuse.
+- `async fetch_feed_topics() -> dict` - Fetches a list of topics available from the Brutalist.report homepage.
+- `async fetch_sources(topic: str = '') -> dict` - Fetches a list of available sources with optional given topic.
+- `async fetch_source_posts(source_link: str, date: datetime.date, limit: int = 50) -> dict` - Fetches posts from a source by date, optionally filtering by limit.
+- `async fetch_last_update_time() -> datetime.datetime` - Fetches the last update time from the Brutalist.report homepage.
 """
 
 import datetime
@@ -18,7 +18,7 @@ from _constants import brutalist_home_url
 
 class BrutalistFetch():
     """
-    A class to fetch data from Brutalist.report website.
+    A class to asynchronously fetch data from Brutalist.report website.
     """
 
     def __init__(self, connection_reuse: bool = False) -> None:
@@ -98,7 +98,7 @@ class BrutalistFetch():
 
     async def fetch_source_posts(self, source_link: str, date: datetime.date, limit: int = 50) -> dict:
         """
-        Fetches posts from a source, optionally filtering by date and limit.
+        Fetches posts of a source from specific date, optionally filtering by limit (number of posts to retrieve).
 
         Args:
             source_link (str): The URL of the source to fetch posts from.
