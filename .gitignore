@@ -163,4 +163,4 @@ cython_debug/
 
 #own added
 .vscode/
-./brutalist.report/main.py
+brutalist_report/main.py

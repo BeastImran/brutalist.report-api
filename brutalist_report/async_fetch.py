@@ -10,7 +10,7 @@ A module to fetch data from Brutalist.report website, including topics, sources,
 
 import datetime
 
-import requests
+import aiohttp
 from bs4 import BeautifulSoup
 
 from _constants import brutalist_home_url
@@ -32,11 +32,9 @@ class BrutalistFetch():
         self.connect_reuse = connection_reuse
 
         if connection_reuse:
-            self.request = requests.Session()
-        else:
-            self.request = requests
+            self.session = aiohttp.ClientSession()
 
-    def __get_page(self, url: str) -> BeautifulSoup:
+    async def __get_page(self, url: str) -> BeautifulSoup:
         """
         Fetches a web page and returns its BeautifulSoup representation.
 
@@ -46,26 +44,32 @@ class BrutalistFetch():
         Returns:
             BeautifulSoup: A BeautifulSoup object representing the fetched web page.
         """
-        print("URL:", url)
-        return BeautifulSoup(self.request.get(url=url).text, "lxml")
+        if self.connect_reuse:
+            async with self.session.get(url=url) as response:
+                text = await response.text()
+                return BeautifulSoup(text, "lxml")
+        else:
+            async with aiohttp.ClientSession() as session:
+                async with session.get(url) as response:
+                    return BeautifulSoup(await response.text(), "lxml")
 
     def __is_http_link(self, link: str) -> bool:
         return True if link.startswith("https://brutalist.report") else False
 
-    def fetch_feed_topics(self) -> dict:
+    async def fetch_feed_topics(self) -> dict:
         """
         Fetches a list of topics from the Brutalist.report homepage.
 
         Returns:
             dict: A dictionary where keys are topic names (lowercase) and values are their corresponding URLs.
         """
-        nav0 = self.__get_page(url=brutalist_home_url).find_all("nav")[0]
+        nav0 = (await self.__get_page(url=brutalist_home_url)).find_all("nav")[0]
         topics = nav0.find_all('a')[1:]
         feed_topics = {topic.string.lower(): brutalist_home_url + topic["href"]
                        for topic in topics if topic['href'].startswith("/topic")}
         return feed_topics
 
-    def fetch_sources(self, topic: str = '') -> dict:
+    async def fetch_sources(self, topic: str = '') -> dict:
         """
         Fetches a list of sources for a given topic.
 
@@ -76,12 +80,10 @@ class BrutalistFetch():
             dict: A dictionary where keys are source names and values are their corresponding URLs.
         """
         is_http_link = self.__is_http_link(link=topic)
-        url = topic if is_http_link else (
-            brutalist_home_url + f'/topic/{topic.lower()}?limit=5')
+        url = topic if is_http_link else (brutalist_home_url + (f'/topic/{topic.lower()}' if topic else '') + '?limit=5')
 
-        page = self.__get_page(url=url).find_all(
-            "div", class_="brutal-grid")[0]
-        # print("PAGE:", page)
+        page = (await self.__get_page(url=url)).find_all("div", class_="brutal-grid")[0]
+
         sources = {
             "topic_link": url,
             "topic_name": page.find_all("h3")[0].string,
@@ -94,7 +96,7 @@ class BrutalistFetch():
 
         return sources
 
-    def fetch_source_posts(self, source_link: str, date: datetime.date, limit: int = 50) -> dict:
+    async def fetch_source_posts(self, source_link: str, date: datetime.date, limit: int = 50) -> dict:
         """
         Fetches posts from a source, optionally filtering by date and limit.
 
@@ -119,7 +121,7 @@ class BrutalistFetch():
         if limit < 50:
             source_link += f"&limit={limit}" if date_not_today else f"?limit={limit}"
 
-        source_page = self.__get_page(url=source_link)
+        source_page = await self.__get_page(url=source_link)
         brutal_grid = source_page.find_all("div", class_="brutal-grid")[0]
 
         content["source_name"] = brutal_grid.find_all("h3")[0].string
@@ -129,15 +131,15 @@ class BrutalistFetch():
 
         return content
 
-    def fetch_last_update_time(self) -> datetime.datetime:
+    async def fetch_last_update_time(self) -> datetime.datetime:
         """
         Fetches the last update time from the Brutalist.report homepage.
 
         Returns:
             datetime.datetime: The last update time in PT timezone.
         """
-        update_text = self.__get_page(
-            url=brutalist_home_url).find_all("aside")[0].string
+        update_text = (await self.__get_page(
+            url=brutalist_home_url)).find_all("aside")[0].string
 
         date_time_str = update_text.split("Last updated ")[1].split(" (")[0]
 

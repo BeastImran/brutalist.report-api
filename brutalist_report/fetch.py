@@ -46,7 +46,6 @@ class BrutalistFetch():
         Returns:
             BeautifulSoup: A BeautifulSoup object representing the fetched web page.
         """
-        print("URL:", url)
         return BeautifulSoup(self.request.get(url=url).text, "lxml")
 
     def __is_http_link(self, link: str) -> bool:
@@ -77,11 +76,11 @@ class BrutalistFetch():
         """
         is_http_link = self.__is_http_link(link=topic)
         url = topic if is_http_link else (
-            brutalist_home_url + f'/topic/{topic.lower()}?limit=5')
+            brutalist_home_url + (f'/topic/{topic.lower()}' if topic else '') + '?limit=5')
 
         page = self.__get_page(url=url).find_all(
             "div", class_="brutal-grid")[0]
-        # print("PAGE:", page)
+
         sources = {
             "topic_link": url,
             "topic_name": page.find_all("h3")[0].string,
