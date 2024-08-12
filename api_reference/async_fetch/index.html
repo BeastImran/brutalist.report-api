@@ -529,13 +529,13 @@
 <a id="brutalist_report.async_fetch"></a>
     <div class="doc doc-contents first">
 
-      <p>A module to fetch data from Brutalist.report website, including topics, sources, posts, and last update time.</p>
+      <p>A module to fetch data from Brutalist.report website asynchronously, including topics, sources, posts, and last update time.</p>
 <ul>
-<li><code>BrutalistFetch(connection_reuse: bool = False)</code> - Initializes a BrutalistFetch object with optional connection reuse.</li>
-<li><code>fetch_feed_topics() -&gt; dict</code> - Fetches a list of topics available from the Brutalist.report homepage.</li>
-<li><code>fetch_sources(topic: str = '') -&gt; dict</code> - Fetches a list of available sources with optional given topic.</li>
-<li><code>fetch_source_posts(source_link: str, date: datetime.date, limit: int = 50) -&gt; dict</code> - Fetches posts from a source by date, optionally filtering by limit.</li>
-<li><code>fetch_last_update_time() -&gt; datetime.datetime</code> - Fetches the last update time from the Brutalist.report homepage.</li>
+<li><code>async BrutalistFetch(connection_reuse: bool = False)</code> - Initializes a BrutalistFetch object with optional connection reuse.</li>
+<li><code>async fetch_feed_topics() -&gt; dict</code> - Fetches a list of topics available from the Brutalist.report homepage.</li>
+<li><code>async fetch_sources(topic: str = '') -&gt; dict</code> - Fetches a list of available sources with optional given topic.</li>
+<li><code>async fetch_source_posts(source_link: str, date: datetime.date, limit: int = 50) -&gt; dict</code> - Fetches posts from a source by date, optionally filtering by limit.</li>
+<li><code>async fetch_last_update_time() -&gt; datetime.datetime</code> - Fetches the last update time from the Brutalist.report homepage.</li>
 </ul>
 
 
@@ -563,7 +563,7 @@
     <div class="doc doc-contents ">
 
 
-      <p>A class to fetch data from Brutalist.report website.</p>
+      <p>A class to asynchronously fetch data from Brutalist.report website.</p>
 
               <details class="quote">
                 <summary>Source code in <code>brutalist_report/async_fetch.py</code></summary>
@@ -692,9 +692,11 @@
 <span class="normal">141</span>
 <span class="normal">142</span>
 <span class="normal">143</span>
-<span class="normal">144</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">BrutalistFetch</span><span class="p">():</span>
+<span class="normal">144</span>
+<span class="normal">145</span>
+<span class="normal">146</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">BrutalistFetch</span><span class="p">():</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    A class to fetch data from Brutalist.report website.</span>
+<span class="sd">    A class to asynchronously fetch data from Brutalist.report website.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">connection_reuse</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -708,11 +710,9 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">connect_reuse</span> <span class="o">=</span> <span class="n">connection_reuse</span>
 
         <span class="k">if</span> <span class="n">connection_reuse</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">request</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">Session</span><span class="p">()</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">request</span> <span class="o">=</span> <span class="n">requests</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">session</span> <span class="o">=</span> <span class="n">aiohttp</span><span class="o">.</span><span class="n">ClientSession</span><span class="p">()</span>
 
-    <span class="k">def</span> <span class="nf">__get_page</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BeautifulSoup</span><span class="p">:</span>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">__get_page</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BeautifulSoup</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Fetches a web page and returns its BeautifulSoup representation.</span>
 
@@ -722,26 +722,32 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            BeautifulSoup: A BeautifulSoup object representing the fetched web page.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;URL:&quot;</span><span class="p">,</span> <span class="n">url</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">BeautifulSoup</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="n">url</span><span class="p">)</span><span class="o">.</span><span class="n">text</span><span class="p">,</span> <span class="s2">&quot;lxml&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">connect_reuse</span><span class="p">:</span>
+            <span class="k">async</span> <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="n">url</span><span class="p">)</span> <span class="k">as</span> <span class="n">response</span><span class="p">:</span>
+                <span class="n">text</span> <span class="o">=</span> <span class="k">await</span> <span class="n">response</span><span class="o">.</span><span class="n">text</span><span class="p">()</span>
+                <span class="k">return</span> <span class="n">BeautifulSoup</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="s2">&quot;lxml&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">async</span> <span class="k">with</span> <span class="n">aiohttp</span><span class="o">.</span><span class="n">ClientSession</span><span class="p">()</span> <span class="k">as</span> <span class="n">session</span><span class="p">:</span>
+                <span class="k">async</span> <span class="k">with</span> <span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">)</span> <span class="k">as</span> <span class="n">response</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">BeautifulSoup</span><span class="p">(</span><span class="k">await</span> <span class="n">response</span><span class="o">.</span><span class="n">text</span><span class="p">(),</span> <span class="s2">&quot;lxml&quot;</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">__is_http_link</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">link</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
         <span class="k">return</span> <span class="kc">True</span> <span class="k">if</span> <span class="n">link</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;https://brutalist.report&quot;</span><span class="p">)</span> <span class="k">else</span> <span class="kc">False</span>
 
-    <span class="k">def</span> <span class="nf">fetch_feed_topics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">fetch_feed_topics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Fetches a list of topics from the Brutalist.report homepage.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            dict: A dictionary where keys are topic names (lowercase) and values are their corresponding URLs.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">nav0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__get_page</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="n">brutalist_home_url</span><span class="p">)</span><span class="o">.</span><span class="n">find_all</span><span class="p">(</span><span class="s2">&quot;nav&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">nav0</span> <span class="o">=</span> <span class="p">(</span><span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">__get_page</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="n">brutalist_home_url</span><span class="p">))</span><span class="o">.</span><span class="n">find_all</span><span class="p">(</span><span class="s2">&quot;nav&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">topics</span> <span class="o">=</span> <span class="n">nav0</span><span class="o">.</span><span class="n">find_all</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">:]</span>
         <span class="n">feed_topics</span> <span class="o">=</span> <span class="p">{</span><span class="n">topic</span><span class="o">.</span><span class="n">string</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span> <span class="n">brutalist_home_url</span> <span class="o">+</span> <span class="n">topic</span><span class="p">[</span><span class="s2">&quot;href&quot;</span><span class="p">]</span>
                        <span class="k">for</span> <span class="n">topic</span> <span class="ow">in</span> <span class="n">topics</span> <span class="k">if</span> <span class="n">topic</span><span class="p">[</span><span class="s1">&#39;href&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;/topic&quot;</span><span class="p">)}</span>
         <span class="k">return</span> <span class="n">feed_topics</span>
 
-    <span class="k">def</span> <span class="nf">fetch_sources</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">topic</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">fetch_sources</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">topic</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Fetches a list of sources for a given topic.</span>
 
@@ -752,12 +758,10 @@
 <span class="sd">            dict: A dictionary where keys are source names and values are their corresponding URLs.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">is_http_link</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__is_http_link</span><span class="p">(</span><span class="n">link</span><span class="o">=</span><span class="n">topic</span><span class="p">)</span>
-        <span class="n">url</span> <span class="o">=</span> <span class="n">topic</span> <span class="k">if</span> <span class="n">is_http_link</span> <span class="k">else</span> <span class="p">(</span>
-            <span class="n">brutalist_home_url</span> <span class="o">+</span> <span class="sa">f</span><span class="s1">&#39;/topic/</span><span class="si">{</span><span class="n">topic</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="si">}</span><span class="s1">?limit=5&#39;</span><span class="p">)</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="n">topic</span> <span class="k">if</span> <span class="n">is_http_link</span> <span class="k">else</span> <span class="p">(</span><span class="n">brutalist_home_url</span> <span class="o">+</span> <span class="p">(</span><span class="sa">f</span><span class="s1">&#39;/topic/</span><span class="si">{</span><span class="n">topic</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="si">}</span><span class="s1">&#39;</span> <span class="k">if</span> <span class="n">topic</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;?limit=5&#39;</span><span class="p">)</span>
 
-        <span class="n">page</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__get_page</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="n">url</span><span class="p">)</span><span class="o">.</span><span class="n">find_all</span><span class="p">(</span>
-            <span class="s2">&quot;div&quot;</span><span class="p">,</span> <span class="n">class_</span><span class="o">=</span><span class="s2">&quot;brutal-grid&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="c1"># print(&quot;PAGE:&quot;, page)</span>
+        <span class="n">page</span> <span class="o">=</span> <span class="p">(</span><span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">__get_page</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="n">url</span><span class="p">))</span><span class="o">.</span><span class="n">find_all</span><span class="p">(</span><span class="s2">&quot;div&quot;</span><span class="p">,</span> <span class="n">class_</span><span class="o">=</span><span class="s2">&quot;brutal-grid&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+
         <span class="n">sources</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s2">&quot;topic_link&quot;</span><span class="p">:</span> <span class="n">url</span><span class="p">,</span>
             <span class="s2">&quot;topic_name&quot;</span><span class="p">:</span> <span class="n">page</span><span class="o">.</span><span class="n">find_all</span><span class="p">(</span><span class="s2">&quot;h3&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">string</span><span class="p">,</span>
@@ -770,7 +774,7 @@
 
         <span class="k">return</span> <span class="n">sources</span>
 
-    <span class="k">def</span> <span class="nf">fetch_source_posts</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source_link</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">date</span><span class="p">:</span> <span class="n">datetime</span><span class="o">.</span><span class="n">date</span><span class="p">,</span> <span class="n">limit</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">50</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">fetch_source_posts</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source_link</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">date</span><span class="p">:</span> <span class="n">datetime</span><span class="o">.</span><span class="n">date</span><span class="p">,</span> <span class="n">limit</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">50</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Fetches posts from a source, optionally filtering by date and limit.</span>
 
@@ -795,7 +799,7 @@
         <span class="k">if</span> <span class="n">limit</span> <span class="o">&lt;</span> <span class="mi">50</span><span class="p">:</span>
             <span class="n">source_link</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;&amp;limit=</span><span class="si">{</span><span class="n">limit</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">if</span> <span class="n">date_not_today</span> <span class="k">else</span> <span class="sa">f</span><span class="s2">&quot;?limit=</span><span class="si">{</span><span class="n">limit</span><span class="si">}</span><span class="s2">&quot;</span>
 
-        <span class="n">source_page</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__get_page</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="n">source_link</span><span class="p">)</span>
+        <span class="n">source_page</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">__get_page</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="n">source_link</span><span class="p">)</span>
         <span class="n">brutal_grid</span> <span class="o">=</span> <span class="n">source_page</span><span class="o">.</span><span class="n">find_all</span><span class="p">(</span><span class="s2">&quot;div&quot;</span><span class="p">,</span> <span class="n">class_</span><span class="o">=</span><span class="s2">&quot;brutal-grid&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
 
         <span class="n">content</span><span class="p">[</span><span class="s2">&quot;source_name&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">brutal_grid</span><span class="o">.</span><span class="n">find_all</span><span class="p">(</span><span class="s2">&quot;h3&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">string</span>
@@ -805,15 +809,15 @@
 
         <span class="k">return</span> <span class="n">content</span>
 
-    <span class="k">def</span> <span class="nf">fetch_last_update_time</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">:</span>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">fetch_last_update_time</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Fetches the last update time from the Brutalist.report homepage.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            datetime.datetime: The last update time in PT timezone.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">update_text</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__get_page</span><span class="p">(</span>
-            <span class="n">url</span><span class="o">=</span><span class="n">brutalist_home_url</span><span class="p">)</span><span class="o">.</span><span class="n">find_all</span><span class="p">(</span><span class="s2">&quot;aside&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">string</span>
+        <span class="n">update_text</span> <span class="o">=</span> <span class="p">(</span><span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">__get_page</span><span class="p">(</span>
+            <span class="n">url</span><span class="o">=</span><span class="n">brutalist_home_url</span><span class="p">))</span><span class="o">.</span><span class="n">find_all</span><span class="p">(</span><span class="s2">&quot;aside&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">string</span>
 
         <span class="n">date_time_str</span> <span class="o">=</span> <span class="n">update_text</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;Last updated &quot;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot; (&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
 
@@ -838,6 +842,10 @@
 
 <h3 id="brutalist_report.async_fetch.BrutalistFetch.__get_page" class="doc doc-heading">
             <code class="highlight language-python"><span class="n">__get_page</span><span class="p">(</span><span class="n">url</span><span class="p">)</span></code>
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-async"><code>async</code></small>
+  </span>
 
 </h3>
 
@@ -900,7 +908,9 @@
 
             <details class="quote">
               <summary>Source code in <code>brutalist_report/async_fetch.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">39</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">37</span>
+<span class="normal">38</span>
+<span class="normal">39</span>
 <span class="normal">40</span>
 <span class="normal">41</span>
 <span class="normal">42</span>
@@ -911,7 +921,11 @@
 <span class="normal">47</span>
 <span class="normal">48</span>
 <span class="normal">49</span>
-<span class="normal">50</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">__get_page</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BeautifulSoup</span><span class="p">:</span>
+<span class="normal">50</span>
+<span class="normal">51</span>
+<span class="normal">52</span>
+<span class="normal">53</span>
+<span class="normal">54</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">__get_page</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BeautifulSoup</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Fetches a web page and returns its BeautifulSoup representation.</span>
 
@@ -921,8 +935,14 @@
 <span class="sd">    Returns:</span>
 <span class="sd">        BeautifulSoup: A BeautifulSoup object representing the fetched web page.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;URL:&quot;</span><span class="p">,</span> <span class="n">url</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">BeautifulSoup</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="n">url</span><span class="p">)</span><span class="o">.</span><span class="n">text</span><span class="p">,</span> <span class="s2">&quot;lxml&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">connect_reuse</span><span class="p">:</span>
+        <span class="k">async</span> <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="n">url</span><span class="p">)</span> <span class="k">as</span> <span class="n">response</span><span class="p">:</span>
+            <span class="n">text</span> <span class="o">=</span> <span class="k">await</span> <span class="n">response</span><span class="o">.</span><span class="n">text</span><span class="p">()</span>
+            <span class="k">return</span> <span class="n">BeautifulSoup</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="s2">&quot;lxml&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">async</span> <span class="k">with</span> <span class="n">aiohttp</span><span class="o">.</span><span class="n">ClientSession</span><span class="p">()</span> <span class="k">as</span> <span class="n">session</span><span class="p">:</span>
+            <span class="k">async</span> <span class="k">with</span> <span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">)</span> <span class="k">as</span> <span class="n">response</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">BeautifulSoup</span><span class="p">(</span><span class="k">await</span> <span class="n">response</span><span class="o">.</span><span class="n">text</span><span class="p">(),</span> <span class="s2">&quot;lxml&quot;</span><span class="p">)</span>
 </code></pre></div></td></tr></table></div>
             </details>
     </div>
@@ -985,9 +1005,7 @@ https://stackoverflow.com/questions/24873927/python-requests-module-and-connecti
 <span class="normal">32</span>
 <span class="normal">33</span>
 <span class="normal">34</span>
-<span class="normal">35</span>
-<span class="normal">36</span>
-<span class="normal">37</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">connection_reuse</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="normal">35</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">connection_reuse</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Read about connection reuse here:</span>
 <span class="sd">    https://stackoverflow.com/questions/24873927/python-requests-module-and-connection-reuse</span>
@@ -998,9 +1016,7 @@ https://stackoverflow.com/questions/24873927/python-requests-module-and-connecti
     <span class="bp">self</span><span class="o">.</span><span class="n">connect_reuse</span> <span class="o">=</span> <span class="n">connection_reuse</span>
 
     <span class="k">if</span> <span class="n">connection_reuse</span><span class="p">:</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">request</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">Session</span><span class="p">()</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">request</span> <span class="o">=</span> <span class="n">requests</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">session</span> <span class="o">=</span> <span class="n">aiohttp</span><span class="o">.</span><span class="n">ClientSession</span><span class="p">()</span>
 </code></pre></div></td></tr></table></div>
             </details>
     </div>
@@ -1012,6 +1028,10 @@ https://stackoverflow.com/questions/24873927/python-requests-module-and-connecti
 
 <h3 id="brutalist_report.async_fetch.BrutalistFetch.fetch_feed_topics" class="doc doc-heading">
             <code class="highlight language-python"><span class="n">fetch_feed_topics</span><span class="p">()</span></code>
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-async"><code>async</code></small>
+  </span>
 
 </h3>
 
@@ -1045,25 +1065,25 @@ https://stackoverflow.com/questions/24873927/python-requests-module-and-connecti
 
             <details class="quote">
               <summary>Source code in <code>brutalist_report/async_fetch.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">55</span>
-<span class="normal">56</span>
-<span class="normal">57</span>
-<span class="normal">58</span>
-<span class="normal">59</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">59</span>
 <span class="normal">60</span>
 <span class="normal">61</span>
 <span class="normal">62</span>
 <span class="normal">63</span>
 <span class="normal">64</span>
 <span class="normal">65</span>
-<span class="normal">66</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">fetch_feed_topics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="normal">66</span>
+<span class="normal">67</span>
+<span class="normal">68</span>
+<span class="normal">69</span>
+<span class="normal">70</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">fetch_feed_topics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Fetches a list of topics from the Brutalist.report homepage.</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        dict: A dictionary where keys are topic names (lowercase) and values are their corresponding URLs.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">nav0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__get_page</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="n">brutalist_home_url</span><span class="p">)</span><span class="o">.</span><span class="n">find_all</span><span class="p">(</span><span class="s2">&quot;nav&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">nav0</span> <span class="o">=</span> <span class="p">(</span><span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">__get_page</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="n">brutalist_home_url</span><span class="p">))</span><span class="o">.</span><span class="n">find_all</span><span class="p">(</span><span class="s2">&quot;nav&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
     <span class="n">topics</span> <span class="o">=</span> <span class="n">nav0</span><span class="o">.</span><span class="n">find_all</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">:]</span>
     <span class="n">feed_topics</span> <span class="o">=</span> <span class="p">{</span><span class="n">topic</span><span class="o">.</span><span class="n">string</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span> <span class="n">brutalist_home_url</span> <span class="o">+</span> <span class="n">topic</span><span class="p">[</span><span class="s2">&quot;href&quot;</span><span class="p">]</span>
                    <span class="k">for</span> <span class="n">topic</span> <span class="ow">in</span> <span class="n">topics</span> <span class="k">if</span> <span class="n">topic</span><span class="p">[</span><span class="s1">&#39;href&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;/topic&quot;</span><span class="p">)}</span>
@@ -1079,6 +1099,10 @@ https://stackoverflow.com/questions/24873927/python-requests-module-and-connecti
 
 <h3 id="brutalist_report.async_fetch.BrutalistFetch.fetch_last_update_time" class="doc doc-heading">
             <code class="highlight language-python"><span class="n">fetch_last_update_time</span><span class="p">()</span></code>
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-async"><code>async</code></small>
+  </span>
 
 </h3>
 
@@ -1112,9 +1136,7 @@ https://stackoverflow.com/questions/24873927/python-requests-module-and-connecti
 
             <details class="quote">
               <summary>Source code in <code>brutalist_report/async_fetch.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">132</span>
-<span class="normal">133</span>
-<span class="normal">134</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">134</span>
 <span class="normal">135</span>
 <span class="normal">136</span>
 <span class="normal">137</span>
@@ -1124,15 +1146,17 @@ https://stackoverflow.com/questions/24873927/python-requests-module-and-connecti
 <span class="normal">141</span>
 <span class="normal">142</span>
 <span class="normal">143</span>
-<span class="normal">144</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">fetch_last_update_time</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">:</span>
+<span class="normal">144</span>
+<span class="normal">145</span>
+<span class="normal">146</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">fetch_last_update_time</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Fetches the last update time from the Brutalist.report homepage.</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        datetime.datetime: The last update time in PT timezone.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">update_text</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__get_page</span><span class="p">(</span>
-        <span class="n">url</span><span class="o">=</span><span class="n">brutalist_home_url</span><span class="p">)</span><span class="o">.</span><span class="n">find_all</span><span class="p">(</span><span class="s2">&quot;aside&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">string</span>
+    <span class="n">update_text</span> <span class="o">=</span> <span class="p">(</span><span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">__get_page</span><span class="p">(</span>
+        <span class="n">url</span><span class="o">=</span><span class="n">brutalist_home_url</span><span class="p">))</span><span class="o">.</span><span class="n">find_all</span><span class="p">(</span><span class="s2">&quot;aside&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">string</span>
 
     <span class="n">date_time_str</span> <span class="o">=</span> <span class="n">update_text</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;Last updated &quot;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot; (&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
 
@@ -1148,6 +1172,10 @@ https://stackoverflow.com/questions/24873927/python-requests-module-and-connecti
 
 <h3 id="brutalist_report.async_fetch.BrutalistFetch.fetch_source_posts" class="doc doc-heading">
             <code class="highlight language-python"><span class="n">fetch_source_posts</span><span class="p">(</span><span class="n">source_link</span><span class="p">,</span> <span class="n">date</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="mi">50</span><span class="p">)</span></code>
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-async"><code>async</code></small>
+  </span>
 
 </h3>
 
@@ -1238,9 +1266,7 @@ https://stackoverflow.com/questions/24873927/python-requests-module-and-connecti
 
             <details class="quote">
               <summary>Source code in <code>brutalist_report/async_fetch.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 97</span>
-<span class="normal"> 98</span>
-<span class="normal"> 99</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 99</span>
 <span class="normal">100</span>
 <span class="normal">101</span>
 <span class="normal">102</span>
@@ -1271,7 +1297,9 @@ https://stackoverflow.com/questions/24873927/python-requests-module-and-connecti
 <span class="normal">127</span>
 <span class="normal">128</span>
 <span class="normal">129</span>
-<span class="normal">130</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">fetch_source_posts</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source_link</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">date</span><span class="p">:</span> <span class="n">datetime</span><span class="o">.</span><span class="n">date</span><span class="p">,</span> <span class="n">limit</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">50</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="normal">130</span>
+<span class="normal">131</span>
+<span class="normal">132</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">fetch_source_posts</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source_link</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">date</span><span class="p">:</span> <span class="n">datetime</span><span class="o">.</span><span class="n">date</span><span class="p">,</span> <span class="n">limit</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">50</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Fetches posts from a source, optionally filtering by date and limit.</span>
 
@@ -1296,7 +1324,7 @@ https://stackoverflow.com/questions/24873927/python-requests-module-and-connecti
     <span class="k">if</span> <span class="n">limit</span> <span class="o">&lt;</span> <span class="mi">50</span><span class="p">:</span>
         <span class="n">source_link</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;&amp;limit=</span><span class="si">{</span><span class="n">limit</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">if</span> <span class="n">date_not_today</span> <span class="k">else</span> <span class="sa">f</span><span class="s2">&quot;?limit=</span><span class="si">{</span><span class="n">limit</span><span class="si">}</span><span class="s2">&quot;</span>
 
-    <span class="n">source_page</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__get_page</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="n">source_link</span><span class="p">)</span>
+    <span class="n">source_page</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">__get_page</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="n">source_link</span><span class="p">)</span>
     <span class="n">brutal_grid</span> <span class="o">=</span> <span class="n">source_page</span><span class="o">.</span><span class="n">find_all</span><span class="p">(</span><span class="s2">&quot;div&quot;</span><span class="p">,</span> <span class="n">class_</span><span class="o">=</span><span class="s2">&quot;brutal-grid&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
 
     <span class="n">content</span><span class="p">[</span><span class="s2">&quot;source_name&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">brutal_grid</span><span class="o">.</span><span class="n">find_all</span><span class="p">(</span><span class="s2">&quot;h3&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">string</span>
@@ -1316,6 +1344,10 @@ https://stackoverflow.com/questions/24873927/python-requests-module-and-connecti
 
 <h3 id="brutalist_report.async_fetch.BrutalistFetch.fetch_sources" class="doc doc-heading">
             <code class="highlight language-python"><span class="n">fetch_sources</span><span class="p">(</span><span class="n">topic</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span></code>
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-async"><code>async</code></small>
+  </span>
 
 </h3>
 
@@ -1378,11 +1410,7 @@ https://stackoverflow.com/questions/24873927/python-requests-module-and-connecti
 
             <details class="quote">
               <summary>Source code in <code>brutalist_report/async_fetch.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">68</span>
-<span class="normal">69</span>
-<span class="normal">70</span>
-<span class="normal">71</span>
-<span class="normal">72</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">72</span>
 <span class="normal">73</span>
 <span class="normal">74</span>
 <span class="normal">75</span>
@@ -1405,7 +1433,9 @@ https://stackoverflow.com/questions/24873927/python-requests-module-and-connecti
 <span class="normal">92</span>
 <span class="normal">93</span>
 <span class="normal">94</span>
-<span class="normal">95</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">fetch_sources</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">topic</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="normal">95</span>
+<span class="normal">96</span>
+<span class="normal">97</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">fetch_sources</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">topic</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Fetches a list of sources for a given topic.</span>
 
@@ -1416,12 +1446,10 @@ https://stackoverflow.com/questions/24873927/python-requests-module-and-connecti
 <span class="sd">        dict: A dictionary where keys are source names and values are their corresponding URLs.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">is_http_link</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__is_http_link</span><span class="p">(</span><span class="n">link</span><span class="o">=</span><span class="n">topic</span><span class="p">)</span>
-    <span class="n">url</span> <span class="o">=</span> <span class="n">topic</span> <span class="k">if</span> <span class="n">is_http_link</span> <span class="k">else</span> <span class="p">(</span>
-        <span class="n">brutalist_home_url</span> <span class="o">+</span> <span class="sa">f</span><span class="s1">&#39;/topic/</span><span class="si">{</span><span class="n">topic</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="si">}</span><span class="s1">?limit=5&#39;</span><span class="p">)</span>
+    <span class="n">url</span> <span class="o">=</span> <span class="n">topic</span> <span class="k">if</span> <span class="n">is_http_link</span> <span class="k">else</span> <span class="p">(</span><span class="n">brutalist_home_url</span> <span class="o">+</span> <span class="p">(</span><span class="sa">f</span><span class="s1">&#39;/topic/</span><span class="si">{</span><span class="n">topic</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="si">}</span><span class="s1">&#39;</span> <span class="k">if</span> <span class="n">topic</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;?limit=5&#39;</span><span class="p">)</span>
 
-    <span class="n">page</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__get_page</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="n">url</span><span class="p">)</span><span class="o">.</span><span class="n">find_all</span><span class="p">(</span>
-        <span class="s2">&quot;div&quot;</span><span class="p">,</span> <span class="n">class_</span><span class="o">=</span><span class="s2">&quot;brutal-grid&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
-    <span class="c1"># print(&quot;PAGE:&quot;, page)</span>
+    <span class="n">page</span> <span class="o">=</span> <span class="p">(</span><span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">__get_page</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="n">url</span><span class="p">))</span><span class="o">.</span><span class="n">find_all</span><span class="p">(</span><span class="s2">&quot;div&quot;</span><span class="p">,</span> <span class="n">class_</span><span class="o">=</span><span class="s2">&quot;brutal-grid&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+
     <span class="n">sources</span> <span class="o">=</span> <span class="p">{</span>
         <span class="s2">&quot;topic_link&quot;</span><span class="p">:</span> <span class="n">url</span><span class="p">,</span>
         <span class="s2">&quot;topic_name&quot;</span><span class="p">:</span> <span class="n">page</span><span class="o">.</span><span class="n">find_all</span><span class="p">(</span><span class="s2">&quot;h3&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">string</span><span class="p">,</span>
