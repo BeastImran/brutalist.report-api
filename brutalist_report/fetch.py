@@ -69,7 +69,7 @@ class BrutalistFetch():
         Fetches a list of sources for a given topic.
 
         Args:
-            topic (str, optional): The topic to fetch sources for. Defaults to ''.
+            topic (str, optional): The topic to fetch sources for. Defaults to all topics available.
 
         Returns:
             dict: A dictionary where keys are source names and values are their corresponding URLs.
@@ -95,11 +95,11 @@ class BrutalistFetch():
 
     def fetch_source_posts(self, source_link: str, date: datetime.date, limit: int = 50) -> dict:
         """
-        Fetches posts from a source, optionally filtering by date and limit.
+        Fetches posts of a source from specific date, optionally filtering by limit (number of posts to retrieve).
 
         Args:
             source_link (str): The URL of the source to fetch posts from.
-            date (datetime.date): The date to filter posts by.
+            date (datetime.date): The date to retrive respective dated posts from source.
             limit (int, optional): The maximum number of posts to fetch. Defaults to 50.
 
         Returns:
