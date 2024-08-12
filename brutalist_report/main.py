@@ -1,4 +1,4 @@
-from helpers.fetch import BrutalistFetch
+from fetch import BrutalistFetch
 from pprint import pprint
 from datetime import date
 

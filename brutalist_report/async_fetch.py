@@ -1,9 +1,19 @@
+"""
+A module to fetch data from Brutalist.report website, including topics, sources, posts, and last update time.
+
+- `BrutalistFetch(connection_reuse: bool = False)` - Initializes a BrutalistFetch object with optional connection reuse.
+- `fetch_feed_topics() -> dict` - Fetches a list of topics available from the Brutalist.report homepage.
+- `fetch_sources(topic: str = '') -> dict` - Fetches a list of available sources with optional given topic.
+- `fetch_source_posts(source_link: str, date: datetime.date, limit: int = 50) -> dict` - Fetches posts from a source by date, optionally filtering by limit.
+- `fetch_last_update_time() -> datetime.datetime` - Fetches the last update time from the Brutalist.report homepage.
+"""
+
 import datetime
 
 import requests
 from bs4 import BeautifulSoup
 
-from constants import brutalist_home_url
+from _constants import brutalist_home_url
 
 
 class BrutalistFetch():

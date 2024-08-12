@@ -1,0 +1,31 @@
+site_name: Brutalist.report API
+
+theme:
+  name: "material"
+  features:
+  - navigation.expand
+  palette:
+    # Light mode
+    - scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to dark mode
+
+    # Dark mode
+    - scheme: slate
+      primary: blue
+      accent: blue
+      toggle:
+        icon: material/weather-night
+        name: Switch to light mode
+
+plugins:
+  - mkdocstrings
+
+nav:
+  - "Brutalist.report API": index.md
+  - References:
+      - Fetch: api_reference/fetch.md
+      - Async Fetch: api_reference/async_fetch.md
