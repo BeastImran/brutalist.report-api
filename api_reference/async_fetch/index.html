@@ -776,7 +776,7 @@
 
     <span class="k">async</span> <span class="k">def</span> <span class="nf">fetch_source_posts</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source_link</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">date</span><span class="p">:</span> <span class="n">datetime</span><span class="o">.</span><span class="n">date</span><span class="p">,</span> <span class="n">limit</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">50</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Fetches posts from a source, optionally filtering by date and limit.</span>
+<span class="sd">        Fetches posts of a source from specific date, optionally filtering by limit (number of posts to retrieve).</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            source_link (str): The URL of the source to fetch posts from.</span>
@@ -1182,7 +1182,7 @@ https://stackoverflow.com/questions/24873927/python-requests-module-and-connecti
 
     <div class="doc doc-contents ">
 
-      <p>Fetches posts from a source, optionally filtering by date and limit.</p>
+      <p>Fetches posts of a source from specific date, optionally filtering by limit (number of posts to retrieve).</p>
 
 
 <p><span class="doc-section-title">Parameters:</span></p>
@@ -1301,7 +1301,7 @@ https://stackoverflow.com/questions/24873927/python-requests-module-and-connecti
 <span class="normal">131</span>
 <span class="normal">132</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">fetch_source_posts</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source_link</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">date</span><span class="p">:</span> <span class="n">datetime</span><span class="o">.</span><span class="n">date</span><span class="p">,</span> <span class="n">limit</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">50</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Fetches posts from a source, optionally filtering by date and limit.</span>
+<span class="sd">    Fetches posts of a source from specific date, optionally filtering by limit (number of posts to retrieve).</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        source_link (str): The URL of the source to fetch posts from.</span>
