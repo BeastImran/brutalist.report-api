@@ -1,5 +1,5 @@
 # brutalist.report-api
-This repo is a python package api for brutalist.report website.
+This repo is a python package api for [brutalist.report](https://brutalist.report/) website.
 
 ## Documentation
 
