@@ -18,7 +18,12 @@ from _constants import brutalist_home_url
 
 class BrutalistFetch():
     """
-    A class to asynchronously fetch data from Brutalist.report website.
+    A class to fetch data from Brutalist.report website.
+    
+    Read about connection reuse here: https://stackoverflow.com/questions/24873927/python-requests-module-and-connection-reuse
+
+    Args:
+        connection_reuse (bool, optional): Set `True` of you want to reuse the already established connection/session/handshake with the website. Defaults to False.
     """
 
     def __init__(self, connection_reuse: bool = False) -> None:
@@ -127,13 +132,13 @@ class BrutalistFetch():
         content["source_name"] = brutal_grid.find_all("h3")[0].string
         content["source_link"] = source_link
         content["posts"] = {headline.find("a").string: headline.find_all("a")[0]["href"]
-                            for headline in brutal_grid[0].find_all("ul")[0].find_all("li")}
+                            for headline in brutal_grid.find_all("ul")[0].find_all("li")}
 
         return content
 
     async def fetch_last_update_time(self) -> datetime.datetime:
         """
-        Fetches the last update time from the Brutalist.report homepage.
+        Fetches the last update time in PT timezone from the Brutalist.report homepage.
 
         Returns:
             datetime.datetime: The last update time in PT timezone.
