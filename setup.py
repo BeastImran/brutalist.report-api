@@ -22,7 +22,7 @@ install_requires = [
 
 
 setup(
-    name='brutalist_report-api',
+    name='brutalist_report_api',
     description="An scraper api for the brutalist.report website.",
     long_description=long_description,
     long_description_content_type="text/markdown",
