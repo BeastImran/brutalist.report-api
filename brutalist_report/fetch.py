@@ -1,11 +1,12 @@
 """
 A module to fetch data from Brutalist.report website, including topics, sources, posts, and last update time.
 
-- `BrutalistFetch(connection_reuse: bool = False)` - Initializes a BrutalistFetch object with optional connection reuse.
+- `BrutalistFetch(connection_reuse: bool = False)` - Initializes a BrutalistFetch object with optional connection reuse. Connection reuse will work great with context manager else you have to manage the session life.
 - `fetch_feed_topics() -> dict` - Fetches a list of topics available from the Brutalist.report homepage.
 - `fetch_sources(topic: str = '') -> dict` - Fetches a list of available sources with optional given topic.
-- `fetch_source_posts(source_link: str, date: datetime.date, limit: int = 50) -> dict` - Fetches posts from a source by date, optionally filtering by limit.
+- `fetch_source_posts(source_link: str, date: datetime.date, limit: int = POSTS_MAX_LIMIT) -> dict` - Fetches posts from a source by date, optionally filtering by limit.
 - `fetch_last_update_time() -> datetime.datetime` - Fetches the last update time from the Brutalist.report homepage.
+- `fetch_keyword_search() -> dict` - Fetches posts from Brutalist.report website based on a given keyword on specified date, optionally filtering by limit.
 """
 
 import datetime
@@ -13,13 +14,15 @@ import datetime
 import requests
 from bs4 import BeautifulSoup
 
-from ._constants import brutalist_home_url
+from ._constants import brutalist_home_url, POSTS_MAX_LIMIT
+from ._helpers import extract_headlines, is_http_link
 
 
 class BrutalistFetch():
     """
     A class to fetch data from Brutalist.report website.
-    
+
+    Connection reuse will work great with context manager else you have to manage the session life.
     Read about connection reuse here: https://stackoverflow.com/questions/24873927/python-requests-module-and-connection-reuse
 
     Args:
@@ -41,6 +44,13 @@ class BrutalistFetch():
         else:
             self.request = requests
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if self.connect_reuse:
+            self.request.close()
+
     def __get_page(self, url: str) -> BeautifulSoup:
         """
         Fetches a web page and returns its BeautifulSoup representation.
@@ -53,9 +63,6 @@ class BrutalistFetch():
         """
         return BeautifulSoup(self.request.get(url=url).text, "lxml")
 
-    def __is_http_link(self, link: str) -> bool:
-        return True if link.startswith("https://brutalist.report") else False
-
     def fetch_feed_topics(self) -> dict:
         """
         Fetches a list of topics from the Brutalist.report homepage.
@@ -63,10 +70,13 @@ class BrutalistFetch():
         Returns:
             dict: A dictionary where keys are topic names (lowercase) and values are their corresponding URLs.
         """
+        feed_topics = {}
+        
         nav0 = self.__get_page(url=brutalist_home_url).find_all("nav")[0]
         topics = nav0.find_all('a')[1:]
-        feed_topics = {topic.string.lower(): brutalist_home_url + topic["href"]
+        feed_topics["topics"] = {topic.string.lower(): brutalist_home_url + topic["href"]
                        for topic in topics if topic['href'].startswith("/topic")}
+
         return feed_topics
 
     def fetch_sources(self, topic: str = '') -> dict:
@@ -74,23 +84,26 @@ class BrutalistFetch():
         Fetches a list of sources for a given topic.
 
         Args:
-            topic (str, optional): The topic to fetch sources for. Defaults to all topics available.
+            topic (str, optional): The topic name or the topic URL to fetch sources for. Defaults to all topics available.
 
         Returns:
             dict: A dictionary where keys are source names and values are their corresponding URLs.
         """
-        is_http_link = self.__is_http_link(link=topic)
-        url = topic if is_http_link else (
-            brutalist_home_url + (f'/topic/{topic.lower()}' if topic else '') + '?limit=5')
+        __is_http_link = is_http_link(link=topic)
+
+        url = topic if __is_http_link else (
+            brutalist_home_url + (f'/topic/{topic.lower()}' if topic else '') + '?limit=2')
 
         page = self.__get_page(url=url).find_all(
             "div", class_="brutal-grid")[0]
 
         sources = {
-            "topic_link": url,
-            "topic_name": page.find_all("h3")[0].string,
+            "sources_fetched_from": url,
             "sources": {},
         }
+
+        if topic:
+            sources["topic"] = topic
 
         for source in page.find_all("h3"):
             a = source.find_all("a")[0]
@@ -98,14 +111,14 @@ class BrutalistFetch():
 
         return sources
 
-    def fetch_source_posts(self, source_link: str, date: datetime.date, limit: int = 50) -> dict:
+    def fetch_source_posts(self, source: str, date: datetime.date, limit: int = POSTS_MAX_LIMIT) -> dict:
         """
         Fetches posts of a source from specific date, optionally filtering by limit (number of posts to retrieve).
 
         Args:
-            source_link (str): The URL of the source to fetch posts from.
+            source (str): The source name or the URL of the source to fetch posts from.
             date (datetime.date): The date to retrive respective dated posts from source.
-            limit (int, optional): The maximum number of posts to fetch. Defaults to 50.
+            limit (int, optional): The maximum number of posts to fetch. Defaults to POSTS_MAX_LIMIT.
 
         Returns:
             dict: A dictionary containing the source name, source link, and a dictionary of posts where keys are post titles and values are their corresponding URLs.
@@ -114,13 +127,17 @@ class BrutalistFetch():
         date_not_today = date.strftime(
             "%Y-%m-%d") != datetime.date.today().strftime("%Y-%m-%d")
 
+        __is_http_link = is_http_link(link=source)
+
+        source_link = source if __is_http_link else (brutalist_home_url + "/source/" + source)
+
         if source_link.endswith("?"):
             source_link = source_link[:-1]
 
         if date_not_today:
             source_link += f'?before={date.strftime("%Y-%m-%d")}'
 
-        if limit < 50:
+        if limit < POSTS_MAX_LIMIT:
             source_link += f"&limit={limit}" if date_not_today else f"?limit={limit}"
 
         source_page = self.__get_page(url=source_link)
@@ -128,8 +145,7 @@ class BrutalistFetch():
 
         content["source_name"] = brutal_grid.find_all("h3")[0].string
         content["source_link"] = source_link
-        content["posts"] = {headline.find("a").string: headline.find_all("a")[0]["href"]
-                            for headline in brutal_grid.find_all("ul")[0].find_all("li")}
+        content["posts"] = extract_headlines(page=source_page)
 
         return content
 
@@ -146,3 +162,37 @@ class BrutalistFetch():
         date_time_str = update_text.split("Last updated ")[1].split(" (")[0]
 
         return datetime.datetime.strptime(date_time_str, "%A, %B %d, %Y %H:%M %p")
+
+    def fetch_keyword_search(self, keyword: str, date: datetime.date, limit: int = POSTS_MAX_LIMIT) -> dict:
+        """
+        Fetches posts from Brutalist.report website based on a given keyword on specified date, optionally filtering by limit.
+
+        Args:
+            keyword (str): The keyword to search for.
+            date (datetime.date): The date to filter posts by.
+            limit (int, optional): The maximum number of posts to fetch. Defaults to POSTS_MAX_LIMIT.
+
+        Returns:
+            dict: A dictionary containing the keyword, and a dictionary of posts where keys are post titles and values are their corresponding URLs.
+        """
+        content = {}
+        content["keyword"] = keyword
+
+        date_not_today = date.strftime(
+            "%Y-%m-%d") != datetime.date.today().strftime("%Y-%m-%d")
+
+        __is_http_link = is_http_link(link=keyword)
+
+        source_link = keyword if __is_http_link else (brutalist_home_url + "/keyword/" + keyword)
+
+        if date_not_today:
+            source_link += f'?before={date.strftime("%Y-%m-%d")}'
+
+        if limit < POSTS_MAX_LIMIT:
+            source_link += f"&limit={limit}" if date_not_today else f"?limit={limit}"
+
+        keyword_results_page = self.__get_page(url=source_link)
+        content["posts"] = extract_headlines(page=keyword_results_page)
+        content["keyword_search_url"] = source_link
+
+        return content
