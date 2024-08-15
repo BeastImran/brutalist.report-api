@@ -28,7 +28,7 @@ setup(
     description="An scraper api for the brutalist.report website.",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    version='0.1.0-alpha3',
+    version='0.1.0',
     packages=find_packages(),
     url='https://github.com/BeastImran/brutalist.report-api',
     author='BeastImran',
