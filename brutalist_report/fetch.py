@@ -1,5 +1,5 @@
 """
-A module to fetch data from Brutalist.report website, including topics, sources, posts, and last update time.
+A module to fetch data from Brutalist.report website, including topics, sources, posts, keyword search, and last update time.
 
 - `BrutalistFetch(connection_reuse: bool = False)` - Initializes a BrutalistFetch object with optional connection reuse. Connection reuse will work great with context manager else you have to manage the session life.
 - `fetch_feed_topics() -> dict` - Fetches a list of topics available from the Brutalist.report homepage.
